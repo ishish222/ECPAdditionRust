@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'structs_traits'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=structs_traits",
+                    "--package=structs_traits"
+                ],
+                "filter": {
+                    "name": "structs_traits",
+                    "kind": "bin"
+                }
+            },
+            "args": ["6", "1", "8", "1"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'structs_traits'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=structs_traits",
+                    "--package=structs_traits"
+                ],
+                "filter": {
+                    "name": "structs_traits",
+                    "kind": "bin"
+                }
+            },
+            "args": ["6", "1", "8", "1"],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

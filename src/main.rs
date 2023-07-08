@@ -4,65 +4,49 @@ use std::fmt::{
     Display, 
     Debug,
     Formatter,
-    Result as FmtResult, Error
+    Result as FmtResult
 };
 use std::ops::Add;
-
+use num::Integer;
 
 fn main() {
     let args = env::args();
 
     dbg!(&args);
 
-    let args_u64: Vec<u64> = args.skip(1).map(|x| x.parse::<u64>().unwrap()).collect();
+    let args_i64: Vec<i64> = args.skip(1).map(|x| x.parse::<i64>().unwrap()).collect();
 
-    dbg!(&args_u64);
+    dbg!(&args_i64);
 
     // add checking that p parameter is prime number
-    let my_ec = EllipticCurve::new(args_u64[0], args_u64[1], args_u64[2]);
+    //let my_ec = EllipticCurve::new(args_i64[0], args_i64[1], args_i64[2]);
+    let my_ec = EllipticCurve::new(0, 7, 37);
 
     dbg!(&my_ec);
 
-    let point_p = EllipticCurvePoint::new(6, 1, &my_ec);
-    let point_q = EllipticCurvePoint::new(8, 1, &my_ec);
+    let point_p = EllipticCurvePoint::new(args_i64[0], args_i64[1], &my_ec);
+    let point_q = EllipticCurvePoint::new(args_i64[2], args_i64[3], &my_ec);
 
     dbg!(&point_p);
     dbg!(&point_q);
 
-/* 
-    println!("1^2 % p = {}", my_ec.pow(1, 2));
-    println!("2^2 % p = {}", my_ec.pow(2, 2));
-    println!("3^2 % p = {}", my_ec.pow(3, 2));
-    println!("4^2 % p = {}", my_ec.pow(4, 2));
-
-    println!("ls(1) % p = {}", my_ec.legendre_symbol(1));
-    println!("ls(2) % p = {}", my_ec.legendre_symbol(2));
-    println!("ls(3) % p = {}", my_ec.legendre_symbol(3));
-    println!("ls(4) % p = {}", my_ec.legendre_symbol(4));
-    println!("ls(5) % p = {}", my_ec.legendre_symbol(5));
-    println!("ls(6) % p = {}", my_ec.legendre_symbol(6));
-    println!("ls(7) % p = {}", my_ec.legendre_symbol(7));
-    println!("ls(8) % p = {}", my_ec.legendre_symbol(8));
-    println!("ls(9) % p = {}", my_ec.legendre_symbol(9));
-    println!("ls(10) % p = {}", my_ec.legendre_symbol(10));
-*/
     let point_r = point_p + point_q;
 
     dbg!(&point_r);
 }
 
 struct EllipticCurve {
-    a: u64,
-    b: u64,
-    p: u64
+    a: i64,
+    b: i64,
+    p: i64
 }
 
 impl EllipticCurve {
-    fn new(a: u64, b: u64, p: u64) -> Self {
+    fn new(a: i64, b: i64, p: i64) -> Self {
         Self { a, b, p }
     }
 
-    fn modular_sqrt(&self, a: u64) -> u64 {
+    fn modular_sqrt(&self, a: i64) -> i64 {
         let p = self.p;
 
         if self.legendre_symbol(a) != 1 { return 0; }
@@ -107,7 +91,7 @@ impl EllipticCurve {
         }
     }
 
-    fn legendre_symbol(&self, a: u64) -> i8 {
+    fn legendre_symbol(&self, a: i64) -> i8 {
         let p = self.p;
         let ls = self.pow(a, (p - 1) / 2);
         if ls == p-1 {
@@ -123,28 +107,30 @@ impl EllipticCurve {
         }
     }
 
-    fn egcd(a: u64, b: u64) -> (u64, u64, u64) {
+    fn egcd(a: i64, b: i64) -> (i64, i64, i64) {
         if a == 0 {
             return (b, 0, 1);
         }
         else {
             let (g, y, x) = EllipticCurve::egcd(b % a, a);
-            return (g, x - (b / a) * y, y);
+            return (g, x - ((b/ a) * y), y);
         }
     }
 
-    fn modinv(&self, a: u64) -> u64 {
+    fn modinv(&self, a: i64) -> Option<i64> {
+        
         let (g, x, y) = EllipticCurve::egcd(a, self.p);
+
         if g != 1 {
             println!("Point x is not on the curve, please select another");
             panic!();
         }
         else {
-            return x % self.p;
+            return Some(x % self.p);
         }
     }
 
-    fn pow(&self, mut base: u64, mut exp: u64) -> u64 {
+    fn pow(&self, mut base: i64, mut exp: i64) -> i64 {
         let modulus = self.p;
 
         if modulus == 1 { return 0 }
@@ -177,13 +163,13 @@ impl Debug for EllipticCurve {
 }
 
 struct EllipticCurvePoint<'ec> {
-    x: u64,
-    y: u64,
+    x: i64,
+    y: i64,
     ec: &'ec EllipticCurve,
 }
 
 impl<'ec> EllipticCurvePoint<'ec> {
-    fn new(x: u64, y: u64, ec: &'ec EllipticCurve) -> Self {
+    fn new(x: i64, y: i64, ec: &'ec EllipticCurve) -> Self {
         Self { x, y, ec }
     }
 }
@@ -204,29 +190,41 @@ impl<'ec> Add for EllipticCurvePoint<'ec> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let grad_y = rhs.y - self.y;
-        let grad_x = rhs.x - self.x;
-        let grad = grad_y / grad_x;
-
         let a = self.ec.a;
         let b = self.ec.b;
         let p = self.ec.p;
-
+ 
         let z=(self.ec.pow(self.x, 3) + a * self.x + b) % p;
         let y1=self.ec.modular_sqrt(z);
 
         let z=(self.ec.pow(rhs.x, 3) + a * rhs.x + b) % p;
         let y2=self.ec.modular_sqrt(z);
 
-        let s=(y2-y1)* self.ec.modinv(self.x-rhs.x);
+        let diff = (rhs.x-self.x) % p;
+        let modinv_ = self.ec.modinv(diff);
+        
+        match modinv_ {
+            Some(modinv) => {
+                let s=(y2-y1) * modinv;
 
-        let x3 = (self.ec.pow(s, 2)-self.x-rhs.x) % p;
-        let y3 = (s*(rhs.x-x3)-y2) % p;
-
-        Self {
-            x: x3,
-            y: y3,
-            ec: self.ec,
+                let mut x3 = (self.ec.pow(s, 2)-rhs.x-self.x) % p;
+                let mut y3 = (s*(rhs.x-x3)-y2) % p;
+        
+                x3 = x3.mod_floor(&p);
+                y3 = y3.mod_floor(&p);
+        
+                Self {
+                    x: x3,
+                    y: y3,
+                    ec: self.ec,
+                }
+            },
+            None => {
+                println!("Mod inverse does not exist for given parameters");
+                panic!();
+            }
+            
         }
+
     }
 }
