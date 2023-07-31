@@ -33,6 +33,7 @@ fn main() {
     dbg!(&point_r);
 }
 
+#[derive(PartialEq)]
 struct EllipticCurve {
     a: i64,
     b: i64,
@@ -161,6 +162,7 @@ impl Debug for EllipticCurve {
     }
 }
 
+#[derive(PartialEq)]
 struct EllipticCurvePoint<'ec> {
     x: i64,
     y: i64,
@@ -228,6 +230,11 @@ impl<'ec> Add for EllipticCurvePoint<'ec> {
     }
 }
 
+/* 
+impl<'ec> Eq for EllipticCurvePoint<'ec> {
+    
+}*/
+
 #[cfg(test)]
 mod tests {
 
@@ -246,8 +253,9 @@ mod tests {
     
         let point_r = point_p + point_q;
 
-        assert_eq!(point_r.x, 23);
-        assert_eq!(point_r.y, 36);
+        let point_s = EllipticCurvePoint::new(23, 36, &my_ec);
+
+        assert_eq!(point_r, point_s);
     }
 
     #[test]
@@ -260,8 +268,9 @@ mod tests {
     
         let point_r = point_p + point_q;
 
-        assert_eq!(point_r.x, 4);
-        assert_eq!(point_r.y, 50);
+        let point_s = EllipticCurvePoint::new(4, 50, &my_ec);
+
+        assert_eq!(point_r, point_s);
     }
 
 
@@ -275,8 +284,8 @@ mod tests {
     
         let point_r = point_p + point_q;
 
-        assert_eq!(point_r.x, 52);
-        assert_eq!(point_r.y, 15);
+        let point_s = EllipticCurvePoint::new(52, 15, &my_ec);
+        assert_eq!(point_r, point_s);
     }
 
 }
