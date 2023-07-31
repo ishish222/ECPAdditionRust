@@ -19,27 +19,8 @@
                     "kind": "bin"
                 }
             },
-            "args": ["6", "1", "8", "1"],
+            "args": ["0", "7", "101", "62", "51", "75", "56"],
             "cwd": "${workspaceFolder}"
         },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in executable 'structs_traits'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--bin=structs_traits",
-                    "--package=structs_traits"
-                ],
-                "filter": {
-                    "name": "structs_traits",
-                    "kind": "bin"
-                }
-            },
-            "args": ["6", "1", "8", "1"],
-            "cwd": "${workspaceFolder}"
-        }
     ]
 }

@@ -18,14 +18,12 @@ fn main() {
 
     dbg!(&args_i64);
 
-    // add checking that p parameter is prime number
-    //let my_ec = EllipticCurve::new(args_i64[0], args_i64[1], args_i64[2]);
-    let my_ec = EllipticCurve::new(0, 7, 37);
+    let my_ec = EllipticCurve::new(args_i64[0], args_i64[1], args_i64[2]);
 
     dbg!(&my_ec);
 
-    let point_p = EllipticCurvePoint::new(args_i64[0], args_i64[1], &my_ec);
-    let point_q = EllipticCurvePoint::new(args_i64[2], args_i64[3], &my_ec);
+    let point_p = EllipticCurvePoint::new(args_i64[3], args_i64[4], &my_ec);
+    let point_q = EllipticCurvePoint::new(args_i64[5], args_i64[6], &my_ec);
 
     dbg!(&point_p);
     dbg!(&point_q);
@@ -52,12 +50,12 @@ impl EllipticCurve {
         if self.legendre_symbol(a) != 1 { return 0; }
         else if a == 0 { return 0; }
         else if p == 2 { return p; }
-        else if p % 4 == 3 { return self.pow(a, (p+1)/4); }
+        else if p.rem_euclid(4) == 3 { return self.pow(a, (p+1)/4); }
 
         let mut s = p - 1;
         let mut e = 0;
 
-        while s % 2 == 0 {
+        while s.rem_euclid(2) == 0 {
             s /= 2;
             e += 1;
         }
@@ -74,8 +72,9 @@ impl EllipticCurve {
             let mut t = b;
             let mut m = 0;
 
-            for m in 0..r {
+            for val in 0..r {
                 if t == 1 {
+                    m = val;
                     break;
                 }
                 t = self.pow(t, 2);
@@ -84,9 +83,9 @@ impl EllipticCurve {
             if m == 0 { return x; }
 
             let gs = self.pow(g, self.pow(2, r - m - 1));
-            g = (gs * gs) % p;
-            x = (x * gs) % p;
-            b = (b * g) % p;
+            g = (gs * gs).rem_euclid(p);
+            x = (x * gs).rem_euclid(p);
+            b = (b * g).rem_euclid(p);
             r = m;
         }
     }
@@ -140,10 +139,10 @@ impl EllipticCurve {
         
         while exp > 0 {
             if exp % 2 == 1 {
-                result = result * base % modulus;
+                result = (result * base) % modulus;
             }
             exp = exp >> 1;
-            base = base * base % modulus
+            base = (base * base) % modulus
         }
         result
     }
@@ -227,4 +226,57 @@ impl<'ec> Add for EllipticCurvePoint<'ec> {
         }
 
     }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use crate::{
+        EllipticCurve,
+        EllipticCurvePoint
+    };
+
+    #[test]
+    fn ecc_addition_test_0_7_37() {
+
+        let my_ec = EllipticCurve::new(0, 7, 37);
+
+        let point_p = EllipticCurvePoint::new(6, 1, &my_ec);
+        let point_q = EllipticCurvePoint::new(8, 1, &my_ec);
+    
+        let point_r = point_p + point_q;
+
+        assert_eq!(point_r.x, 23);
+        assert_eq!(point_r.y, 36);
+    }
+
+    #[test]
+    fn ecc_addition_test_2_3_97() {
+
+        let my_ec = EllipticCurve::new(2, 3, 97);
+
+        let point_p = EllipticCurvePoint::new(12, 94, &my_ec);
+        let point_q = EllipticCurvePoint::new(17, 87, &my_ec);
+    
+        let point_r = point_p + point_q;
+
+        assert_eq!(point_r.x, 4);
+        assert_eq!(point_r.y, 50);
+    }
+
+
+    #[test]
+    fn ecc_addition_test_0_7_101() {
+
+        let my_ec = EllipticCurve::new(0, 7, 101);
+
+        let point_p = EllipticCurvePoint::new(62, 51, &my_ec);
+        let point_q = EllipticCurvePoint::new(75, 56, &my_ec);
+    
+        let point_r = point_p + point_q;
+
+        assert_eq!(point_r.x, 52);
+        assert_eq!(point_r.y, 15);
+    }
+
 }
